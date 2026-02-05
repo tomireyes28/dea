@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simulador DEA Profesional</title>
+  <style>
+    :root {
+      --dea-yellow: #f1c40f;
+      --dea-dark-gray: #2c3e50;
+      --lcd-bg: #1a1a1a;
+      --shock-red: #e74c3c;
+    }
+
+    body {
+      background: #222;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      color: white;
+    }
+
+    /* Carcasa del DEA */
+    .dea {
+      width: 380px;
+      background: var(--dea-yellow);
+      border-radius: 50px 50px 30px 30px;
+      padding: 30px;
+      box-shadow: 0 20px 0 #b7950b, 0 30px 50px rgba(0,0,0,0.5);
+      border: 4px solid #d4ac0d;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center; /* Centra todo el contenido verticalmente */
+    }
+
+    /* --- LOGO SUPERIOR (Nuevo estilo) --- */
+    .logo-top-container {
+      margin-bottom: 15px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .logo-top-container button {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .logo-top {
+      /* AQUÍ SE CONTROLA EL TAMAÑO: Cambia 180px por el valor que quieras */
+      max-width: 180px; 
+      height: auto;
+      transition: transform 0.2s;
+      /* Eliminé el filtro gris para que destaque más arriba */
+    }
+
+    .logo-top:hover {
+      transform: scale(1.05);
+    }
+
+    .brand-header {
+      text-align: center;
+      margin-bottom: 20px;
+      width: 100%;
+    }
+
+    .titulo {
+      font-weight: 900;
+      font-size: 24px;
+      color: #333;
+      letter-spacing: 2px;
+      margin: 0;
+    }
+
+    .subtitulo {
+      font-size: 10px;
+      background: #333;
+      color: var(--dea-yellow);
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 4px;
+      margin-top: 5px;
+      text-transform: uppercase;
+    }
+
+    /* Pantalla LCD */
+    .screen-container {
+      background: #333;
+      padding: 15px;
+      border-radius: 10px;
+      border: 3px solid #555;
+      margin-bottom: 25px;
+      box-shadow: inset 0 0 10px #000;
+      width: 90%; /* Ajuste para que no toque los bordes */
+    }
+
+    .output {
+      background: var(--lcd-bg);
+      color: #00ff00;
+      font-family: 'Courier New', monospace;
+      padding: 15px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      border-radius: 5px;
+      font-size: 16px;
+      text-transform: uppercase;
+      border: 1px solid #444;
+      line-height: 1.4;
+    }
+
+    #contador {
+      font-size: 22px;
+      color: #ff3333;
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+      text-shadow: 0 0 5px #ff0000;
+    }
+
+    /* Panel de Control */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+      width: 100%;
+      padding: 0 20px;
+      box-sizing: border-box;
+    }
+
+    .power-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .btn-circle {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: 4px solid rgba(0,0,0,0.2);
+      cursor: pointer;
+      font-weight: bold;
+      transition: transform 0.1s, filter 0.2s;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 10px;
+      color: white;
+    }
+
+    .btn-circle:active { transform: scale(0.95); }
+
+    .power-on { background: #27ae60; box-shadow: 0 4px 0 #1e8449; }
+    .power-off { background: #c0392b; box-shadow: 0 4px 0 #922b21; }
+    
+    .power-on:disabled, .power-off:disabled { 
+      filter: grayscale(1); 
+      opacity: 0.5; 
+      cursor: not-allowed; 
+      box-shadow: none;
+    }
+
+    /* Botón de SHOCK */
+    .shock-container {
+      text-align: center;
+    }
+
+    .shock {
+      width: 100px;
+      height: 100px;
+      background: radial-gradient(circle, #ff5f6d, #ffc371);
+      background: #777;
+      border: 6px solid #555;
+      border-radius: 50%;
+      color: white;
+      font-weight: 900;
+      font-size: 16px;
+      cursor: not-allowed;
+      position: relative;
+      transition: all 0.3s;
+    }
+
+    .shock.activa {
+      background: radial-gradient(circle, #e74c3c, #c0392b);
+      border-color: #fff;
+      cursor: pointer;
+      box-shadow: 0 0 20px #e74c3c, 0 0 40px #e74c3c;
+      animation: pulse-shock 0.8s infinite;
+    }
+
+    @keyframes pulse-shock {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    /* Indicadores LED */
+    .led-panel {
+      background: rgba(0,0,0,0.1);
+      padding: 15px;
+      border-radius: 15px;
+      margin-top: 20px;
+      width: 90%;
+    }
+
+    .led-label {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 8px 0;
+      font-size: 11px;
+      color: #333;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .led {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #95a5a6;
+      border: 2px solid rgba(0,0,0,0.2);
+    }
+
+    .led.on {
+      background: #2ecc71;
+      box-shadow: 0 0 10px #2ecc71;
+    }
+
+    .blink { animation: blinker 1s linear infinite; }
+    @keyframes blinker { 50% { opacity: 0; } }
+
+  </style>
+</head>
+<body>
+
+  <div class="dea">
+    
+    <div class="logo-top-container">
+      <button onclick="alert('Sistema de Entrenamiento v2.0')">
+        <img src="logo_adventista.png" alt="Logo" class="logo-top">
+      </button>
+    </div>
+
+    <div class="brand-header">
+      <div class="titulo">LIFE-SAVE 3000</div>
+      <div class="subtitulo">Entrenador DEA Profesional</div>
+    </div>
+
+    <div class="screen-container">
+      <div class="output" id="output">PRESIONE BOTÓN ENCENDIDO PARA INICIAR</div>
+      <div id="contador"></div>
+    </div>
+
+    <div class="controls">
+      <div class="power-buttons">
+        <button id="botonEncendido" class="btn-circle power-on blink" onclick="iniciarSimulacion()">
+          <span style="font-size: 20px;">ON</span>
+        </button>
+        <button id="botonApagado" class="btn-circle power-off" onclick="apagarSimulador()" disabled>
+          <span style="font-size: 20px;">OFF</span>
+        </button>
+      </div>
+
+      <div class="shock-container">
+        <button class="shock" id="botonShock" onclick="shock()">
+          ⚡<br>SHOCK
+        </button>
+      </div>
+    </div>
+
+    <div class="led-panel">
+      <div class="led-label"><div class="led" id="led1"></div><span>Parches</span></div>
+      <div class="led-label"><div class="led" id="led2"></div><span>Cables</span></div>
+      <div class="led-label"><div class="led" id="led3"></div><span>Analizando</span></div>
+      <div class="led-label"><div class="led" id="led4"></div><span>No tocar</span></div>
+      <div class="led-label"><div class="led" id="led5"></div><span>Cargando</span></div>
+    </div>
+
+  </div>
+
+  <script>
+    // --- LÓGICA ORIGINAL INTACTA ---
+    const pasos = [
+      { texto: "DEA encendido. Coloque los parches en el pecho desnudo del paciente.", led: 0, audio: "dea-encendido.mp3", delay: 7000 },
+      { texto: "Conecte los cables de los parches al DEA.", led: 1, audio: "conectar.mp3", delay: 7000 }
+    ];
+
+    let pasoActual = 0;
+    let simulando = false;
+    let toggleShock = true;
+    let intervalRCP = null;
+    let metr = null;
+    let timeouts = [];
+
+    function setSimuladorTimeout(callback, delay) {
+      const id = setTimeout(callback, delay);
+      timeouts.push(id);
+      return id;
+    }
+
+    function iniciarSimulacion() {
+      if (!simulando) {
+        simulando = true;
+        pasoActual = 0;
+        document.getElementById("botonEncendido").disabled = true;
+        document.getElementById("botonEncendido").classList.remove("blink");
+        document.getElementById("botonApagado").disabled = false;
+        document.querySelectorAll('.led').forEach(led => led.classList.remove('on'));
+        document.getElementById("botonShock").classList.remove("activa");
+        document.getElementById("botonShock").disabled = true;
+        document.getElementById("contador").style.display = "none";
+        ejecutarPaso();
+      }
+    }
+
+    function ejecutarPaso() {
+      if (pasoActual < pasos.length) {
+        const paso = pasos[pasoActual];
+        document.getElementById("output").innerText = paso.texto;
+        if (paso.audio) new Audio(paso.audio).play();
+        encenderLED(paso.led);
+        setSimuladorTimeout(() => {
+          pasoActual++;
+          ejecutarPaso();
+        }, paso.delay);
+      } else {
+        evaluarRitmo();
+      }
+    }
+
+    function encenderLED(indice) {
+      if (indice !== null) {
+        document.getElementById(`led${indice + 1}`).classList.add("on");
+      }
+    }
+
+    function evaluarRitmo() {
+      const output = document.getElementById("output");
+      [3, 4, 5].forEach(i => document.getElementById(`led${i}`).classList.remove("on"));
+
+      output.innerText = "Analizando ritmo cardíaco.";
+      encenderLED(2);
+      new Audio("analizando.mp3").play();
+
+      setSimuladorTimeout(() => {
+        output.innerText = "No toque al paciente.";
+        encenderLED(3);
+        new Audio("no-toque.mp3").play();
+
+        setSimuladorTimeout(() => {
+          output.innerText = "Espere mientras el DEA analiza...";
+
+          setSimuladorTimeout(() => {
+            if (toggleShock) {
+              output.innerText = "Descarga necesaria. Cargando DEA.";
+              encenderLED(4);
+              new Audio("cargando.mp3").play();
+
+              setSimuladorTimeout(() => {
+                output.innerText = "Presione el botón de descarga ahora.";
+                new Audio("shock.mp3").play();
+                document.getElementById("botonShock").classList.add("activa");
+                document.getElementById("botonShock").disabled = false;
+              }, 6000);
+            } else {
+              output.innerText = "No se recomienda descarga. Comience RCP inmediatamente.";
+              new Audio("no-descarga.mp3").play();
+              iniciarRCP();
+            }
+          }, 3000);
+        }, 4000);
+      }, 3000);
+    }
+
+    function shock() {
+      if (!document.getElementById("botonShock").disabled) {
+        document.getElementById("botonShock").classList.remove("activa");
+        document.getElementById("botonShock").disabled = true;
+        document.getElementById("output").innerText = "Descarga realizada. Continúe con RCP.";
+        new Audio("rcp.mp3").play();
+        setSimuladorTimeout(() => iniciarRCP(), 4000);
+      }
+    }
+
+    function iniciarRCP() {
+      let segundos = 120;
+      const contador = document.getElementById("contador");
+      contador.style.display = "block";
+      actualizarContador(segundos);
+
+      metr = new Audio("metronomo.mp3");
+      metr.loop = true;
+      metr.play();
+
+      intervalRCP = setInterval(() => {
+        segundos--;
+        if (segundos >= 0) actualizarContador(segundos);
+        if (segundos <= 0) {
+          clearInterval(intervalRCP);
+          if (metr) {
+            metr.pause();
+            metr.currentTime = 0;
+          }
+          contador.style.display = "none";
+          toggleShock = !toggleShock;
+          evaluarRitmo();
+        }
+      }, 1000);
+    }
+
+    function actualizarContador(segundos) {
+      const min = Math.floor(segundos / 60);
+      const seg = segundos % 60;
+      document.getElementById("contador").innerText = `RCP: ${min}:${seg < 10 ? '0' : ''}${seg}`;
+    }
+
+    function apagarSimulador() {
+      simulando = false;
+      pasoActual = 0;
+      clearInterval(intervalRCP);
+      timeouts.forEach(id => clearTimeout(id));
+      timeouts = [];
+
+      if (metr) {
+        metr.pause();
+        metr.currentTime = 0;
+      }
+
+      document.querySelectorAll('.led').forEach(led => led.classList.remove('on'));
+      document.getElementById("botonShock").classList.remove("activa");
+      document.getElementById("botonShock").disabled = true;
+      document.getElementById("contador").style.display = "none";
+      document.getElementById("contador").innerText = "";
+      document.getElementById("output").innerText = "PRESIONE BOTÓN ENCENDIDO PARA INICIAR";
+      document.getElementById("botonEncendido").disabled = false;
+      document.getElementById("botonEncendido").classList.add("blink");
+      document.getElementById("botonApagado").disabled = true;
+      toggleShock = true;
+    }
+  </script>
+</body>
+</html>
