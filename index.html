@@ -23,7 +23,6 @@
       color: white;
     }
 
-    /* Carcasa del DEA */
     .dea {
       width: 380px;
       background: var(--dea-yellow);
@@ -34,10 +33,10 @@
       position: relative;
       display: flex;
       flex-direction: column;
-      align-items: center; /* Centra todo el contenido verticalmente */
+      align-items: center; 
     }
 
-    /* --- LOGO SUPERIOR (Nuevo estilo) --- */
+    
     .logo-top-container {
       margin-bottom: 15px;
       width: 100%;
@@ -52,11 +51,11 @@
     }
 
     .logo-top {
-      /* AQUÍ SE CONTROLA EL TAMAÑO: Cambia 180px por el valor que quieras */
+      
       max-width: 180px; 
       height: auto;
       transition: transform 0.2s;
-      /* Eliminé el filtro gris para que destaque más arriba */
+     
     }
 
     .logo-top:hover {
@@ -88,7 +87,7 @@
       text-transform: uppercase;
     }
 
-    /* Pantalla LCD */
+   
     .screen-container {
       background: #333;
       padding: 15px;
@@ -96,7 +95,7 @@
       border: 3px solid #555;
       margin-bottom: 25px;
       box-shadow: inset 0 0 10px #000;
-      width: 90%; /* Ajuste para que no toque los bordes */
+      width: 90%; 
     }
 
     .output {
@@ -125,7 +124,7 @@
       text-shadow: 0 0 5px #ff0000;
     }
 
-    /* Panel de Control */
+    
     .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -171,7 +170,7 @@
       box-shadow: none;
     }
 
-    /* Botón de SHOCK */
+   
     .shock-container {
       text-align: center;
     }
@@ -205,7 +204,7 @@
       100% { transform: scale(1); }
     }
 
-    /* Indicadores LED */
+  
     .led-panel {
       background: rgba(0,0,0,0.1);
       padding: 15px;
@@ -291,7 +290,7 @@
   </div>
 
   <script>
-    // --- LÓGICA ORIGINAL INTACTA ---
+   
     const pasos = [
       { texto: "DEA encendido. Coloque los parches en el pecho desnudo del paciente.", led: 0, audio: "dea-encendido.mp3", delay: 7000 },
       { texto: "Conecte los cables de los parches al DEA.", led: 1, audio: "conectar.mp3", delay: 7000 }
