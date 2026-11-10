@@ -273,7 +273,7 @@
       </div>
 
       <div class="shock-container">
-        <button class="shock" id="botonShock" onclick="shock()">
+        <button class="shock" id="botonShock" onclick="shock()" disabled>
           ⚡<br>SHOCK
         </button>
       </div>
@@ -301,7 +301,26 @@
     let toggleShock = true;
     let intervalRCP = null;
     let metr = null;
+    let voz = null;
     let timeouts = [];
+
+    function detenerVoz() {
+      if (voz) {
+        voz.pause();
+        voz.currentTime = 0;
+        voz = null;
+      }
+    }
+
+    function reproducirVoz(archivo) {
+      detenerVoz();
+      voz = new Audio(archivo);
+      voz.play().catch(error => console.warn("No se pudo reproducir la instrucción:", error));
+    }
+
+    function apagarLucesDeEtapa() {
+      [3, 4, 5].forEach(i => document.getElementById(`led${i}`).classList.remove("on"));
+    }
 
     function setSimuladorTimeout(callback, delay) {
       const id = setTimeout(callback, delay);
@@ -328,7 +347,7 @@
       if (pasoActual < pasos.length) {
         const paso = pasos[pasoActual];
         document.getElementById("output").innerText = paso.texto;
-        if (paso.audio) new Audio(paso.audio).play();
+        if (paso.audio) reproducirVoz(paso.audio);
         encenderLED(paso.led);
         setSimuladorTimeout(() => {
           pasoActual++;
@@ -347,16 +366,16 @@
 
     function evaluarRitmo() {
       const output = document.getElementById("output");
-      [3, 4, 5].forEach(i => document.getElementById(`led${i}`).classList.remove("on"));
+      apagarLucesDeEtapa();
 
       output.innerText = "Analizando ritmo cardíaco.";
       encenderLED(2);
-      new Audio("analizando.mp3").play();
+      reproducirVoz("analizando.mp3");
 
       setSimuladorTimeout(() => {
         output.innerText = "No toque al paciente.";
         encenderLED(3);
-        new Audio("no-toque.mp3").play();
+        reproducirVoz("no-toque.mp3");
 
         setSimuladorTimeout(() => {
           output.innerText = "Espere mientras el DEA analiza...";
@@ -365,17 +384,17 @@
             if (toggleShock) {
               output.innerText = "Descarga necesaria. Cargando DEA.";
               encenderLED(4);
-              new Audio("cargando.mp3").play();
+              reproducirVoz("cargando.mp3");
 
               setSimuladorTimeout(() => {
                 output.innerText = "Presione el botón de descarga ahora.";
-                new Audio("shock.mp3").play();
+                reproducirVoz("shock.mp3");
                 document.getElementById("botonShock").classList.add("activa");
                 document.getElementById("botonShock").disabled = false;
               }, 6000);
             } else {
               output.innerText = "No se recomienda descarga. Comience RCP inmediatamente.";
-              new Audio("no-descarga.mp3").play();
+              reproducirVoz("no-descarga.mp3");
               iniciarRCP();
             }
           }, 3000);
@@ -384,16 +403,20 @@
     }
 
     function shock() {
-      if (!document.getElementById("botonShock").disabled) {
+      if (simulando && !document.getElementById("botonShock").disabled &&
+          document.getElementById("botonShock").classList.contains("activa")) {
         document.getElementById("botonShock").classList.remove("activa");
         document.getElementById("botonShock").disabled = true;
         document.getElementById("output").innerText = "Descarga realizada. Continúe con RCP.";
-        new Audio("rcp.mp3").play();
+        apagarLucesDeEtapa();
+        reproducirVoz("rcp.mp3");
         setSimuladorTimeout(() => iniciarRCP(), 4000);
       }
     }
 
     function iniciarRCP() {
+      if (!simulando) return;
+      apagarLucesDeEtapa();
       let segundos = 120;
       const contador = document.getElementById("contador");
       contador.style.display = "block";
@@ -401,7 +424,7 @@
 
       metr = new Audio("metronomo.mp3");
       metr.loop = true;
-      metr.play();
+      metr.play().catch(error => console.warn("No se pudo reproducir el metrónomo:", error));
 
       intervalRCP = setInterval(() => {
         segundos--;
@@ -431,6 +454,7 @@
       clearInterval(intervalRCP);
       timeouts.forEach(id => clearTimeout(id));
       timeouts = [];
+      detenerVoz();
 
       if (metr) {
         metr.pause();
